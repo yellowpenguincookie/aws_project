@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-                      #현재 파일 ruby 언어를 사용
+# vi: set ft=ruby :                       #ft: file type 
+
+#================#
+# Ansible Server #
+#================#
+
+Vagrant.configure("2") do |config|                              #버전 2 
+  config.vm.define "ansible-server" do |cfg|
+    cfg.vm.box = "centos/7"                                     #provisioning할 운영체제 
+    cfg.vm.provider "virtualbox" do |vb|
+      vb.name = "Ansible-Server"                                #가상머신 이름 지정 
+  end
+    cfg.vm.host_name = "ansible-server"                         #가상머신 hostname 지정 
+    cfg.vm.network "private_network", ip: "192.168.56.10"       #네트워크 지정 
+    cfg.vm.network "forwarded_port", guest: 22, host: 60010, auto_correct: true, id: "ssh"        #host와 사용하게 됭 공유폴더 지정 
+    cfg.vm.synced_folder "../data", "/vagrant", disabled: true
+    cfg.vm.provision "shell", inline: "yum install epel-release -y"
+    cfg.vm.provision "shell", inline: "yum install ansible -y"      #"yum install ansible -y" 명령을 vagrant 에서 ansible-server 로 넘겨줌 
+    cfg.vm.provision "file", source: "ansible_env_ready.yml", destination: "ansible_env_ready.yml"
+    cfg.vm.provision "shell", inline: "ansible-playbook ansible_env_ready.yml"
+  end
+end
+
+
+#추가사항 업로드할 때 vagrant provision 사용 
